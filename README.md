@@ -2,7 +2,7 @@
 
 ## After effects script to create make shift onion skins.
 
-** this is not very well tested, works well for what I need it for but your mileage may vary **
+**THIS IS NOT TESTED VERY WELL, works well for what I need it for but your mileage may vary **
 
 Install script into ScriptUI folder, a quick google search will help you with this if you don't know how.
 
