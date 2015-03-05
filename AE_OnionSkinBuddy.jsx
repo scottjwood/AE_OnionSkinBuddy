@@ -56,7 +56,7 @@ function scottPanel(thisObj) {
 		for (var i = 0; i < skinInputInt; i++){
 			onionLayer = startLayer.duplicate();
 			var frameSkip = frameTime*(skinFrameInputInt*(i+1));
-			$.writeln(frameSkip);
+
 			// check if layer is before or after
 			if (before == true) {
 				onionLayer.startTime = onionLayer.startTime - frameSkip;
