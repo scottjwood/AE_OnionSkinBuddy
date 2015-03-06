@@ -5,6 +5,10 @@ function scottPanel(thisObj) {
 	var skinInput; // how many skins on each side
 	var opacityInput; // starting opacity for skins
 	var skinFrameInput; // stagger skins every x frames
+	var onionBefore = true;
+	var onionAfter = true;
+	var colorBefore = [0, .93, .99]; // blue
+	var colorAfter = [.98, 0, .99]; // purple
 
 	function scottPanel_buildUI(thisObj) {
 		var onionSkinnerPanel = (thisObj instanceof Panel) ? thisObj : new Window("palette", "Onion Skin Buddy", [100, 100, 300, 280]);//
@@ -16,6 +20,7 @@ function scottPanel(thisObj) {
 		opacityInput = onionSkinnerPanel.add("edittext", [100,40,130,60], "50");
 		var skinFrameText = onionSkinnerPanel.add("statictext", [10,65,110,85], "Skin every x frames");
 		skinFrameInput = onionSkinnerPanel.add("edittext", [120,65,150,85], "2");
+		
 		var buttonMakeOnion = onionSkinnerPanel.add("button", [10,90,180,110], "Make Onion");
 		var buttonRemoveOnion = onionSkinnerPanel.add("button", [10,115,180,135], "Remove Onions");
 		var buttonRefreshOnion = onionSkinnerPanel.add("button", [10,140,180,160], "Refresh Onions");
@@ -38,16 +43,17 @@ function scottPanel(thisObj) {
 				alert("Select layer before running this script");
 			} else {         
 				var theLayer = activeItem.selectedLayers[0];
+				theLayer.selected = false; // deselect layer so no edits are made to it
+
+				if (onionBefore) onionMaker(theLayer, true, colorBefore); // offset layers before
 				
-				// offset layers before
-				onionMaker(theLayer, true);
-				  
-				// offset layers after
-				onionMaker(theLayer, false);
+				if (onionAfter) onionMaker(theLayer, false, colorAfter); // offset layers after
+                
+                theLayer.selected = true; // reselect original layer after onions are created
 		   }
 		}
 	}
-	function onionMaker(startLayer, before) {
+	function onionMaker(startLayer, before, overlayColor) {
 		var opacityStart = parseInt(opacityInput.text);
 		var skinInputInt = parseInt(skinInput.text);
 		var skinFrameInputInt = parseInt(skinFrameInput.text);
@@ -55,22 +61,34 @@ function scottPanel(thisObj) {
 		var opacityChange = (opacityStart/skinInputInt)-1;
 		for (var i = 0; i < skinInputInt; i++){
 			onionLayer = startLayer.duplicate();
+			onionLayer.moveAfter(startLayer);
 			var frameSkip = frameTime*(skinFrameInputInt*(i+1));
 
 			// check if layer is before or after
 			if (before == true) {
-				onionLayer.startTime = onionLayer.startTime - frameSkip;
-			} else {
 				onionLayer.startTime = onionLayer.startTime + frameSkip;
+			} else {
+				onionLayer.startTime = onionLayer.startTime - frameSkip;
 			}
 			onionLayer.blendingMode = BlendingMode.MULTIPLY;
 			onionLayer.label = 13;
 			onionLayer.opacity.setValue(opacityStart);
 			opacityStart = opacityStart - opacityChange; // incrementally decrease opacity
 			onionLayer.name = "Onion Skin";
+			onionLayer.selected = true; // make sure new layer selected
+			app.executeCommand(app.findMenuCommandId("Color Overlay")); // add color overlay to new layer
+			var overlayGroup = onionLayer.property("ADBE Layer Styles").property("solidFill/enabled");
+			// set overlay color
+			if (overlayGroup.canSetEnabled){
+				// if so, it means that the overlay group has been revealed and its values can be modified
+				overlayGroup.property("solidFill/color").setValue(overlayColor);
+			}
+				else alert("layer("+layer.index+") overlay cannot be modified, it is not enabled.");
+			
 			onionLayer.shy = true;
 			onionLayer.locked = true;
 			onionArray.push(onionLayer);
+			onionLayer.selected = false;
 		}
 	}
 	function removeOnionSkin() {
